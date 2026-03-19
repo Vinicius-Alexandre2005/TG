@@ -5,28 +5,32 @@ var cookieParser = require('cookie-parser')
 var logger = require('morgan')
 
 var usersRouter = require('./routes/users')
+var clientesRouter = require('./routes/clientes')
+var profissionaisRouter = require('./routes/profissionais')
 
 var app = express()
 
-// arquivos estáticos
+app.use(logger('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
+
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.static(path.join(__dirname, '../front-end')))
 
-// API principal
 app.use('/usuarios', usersRouter)
+app.use('/clientes', clientesRouter)
+app.use('/profissionais', profissionaisRouter)
 
-// catch 404
 app.use(function(req, res, next) {
   next(createError(404))
 })
 
-// error handler
 app.use(function(err, req, res, next) {
-  res.locals.message = err.message
-  res.locals.error = req.app.get('env') === 'development' ? err : {}
-
-  res.status(err.status || 500)
-  res.render('error')
+  res.status(err.status || 500).json({
+    sucesso: false,
+    erro: err.message
+  })
 })
 
 module.exports = app
