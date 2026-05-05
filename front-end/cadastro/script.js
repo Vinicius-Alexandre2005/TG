@@ -299,6 +299,10 @@ formCadastro.addEventListener('submit', async (event) => {
       servicos.length = 0
       renderizarServicos()
       atualizarInputServicos()
+
+      setTimeout(() => {
+      window.location.href = '../login/login.html'
+      }, 1500)
     } else if (resposta.status === 400) {
       mensagem.textContent = 'Este e-mail já está cadastrado.'
       mensagem.classList.add('erro')

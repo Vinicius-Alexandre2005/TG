@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Perfil</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="/global.css">
+</head>
+<body>
+  <div id="header-container"></div>
+  <main class="perfil-page">
+
+    <div class="perfil-card">
+
+      <!-- TOPO -->
+      <div class="perfil-top">
+        <img id="foto" class="perfil-foto" alt="Foto do perfil">
+        <h2 id="nome"></h2>
+        <p id="email"></p>
+        <span id="tipo-usuario" class="tipo-usuario-badge"></span>
+      </div>
+
+      <!-- INFORMAÇÕES PESSOAIS -->
+      <div class="perfil-section">
+        <h3>Informações Pessoais</h3>
+
+        <div class="perfil-grid">
+
+          <div class="info-box">
+            <span>Nome Completo</span>
+            <strong id="nome-display"></strong>
+            <input type="text" id="input_nome" class="hidden" placeholder="Nome completo">
+          </div>
+
+          <div class="info-box">
+            <span>Telefone</span>
+            <strong id="telefone"></strong>
+            <input type="tel" id="input_telefone" class="hidden" placeholder="(00) 00000-0000">
+          </div>
+
+          <div class="info-box">
+            <span>Data de Nascimento</span>
+            <strong id="data"></strong>
+            <input type="date" id="input_data" class="hidden">
+          </div>
+
+          <div class="info-box">
+            <span>Tipo de Usuário</span>
+            <strong id="tipo-usuario-display"></strong>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- INFORMAÇÕES DE ENDEREÇO -->
+      <div class="perfil-section">
+        <h3>Endereço</h3>
+
+        <div class="perfil-grid">
+
+          <div class="info-box">
+            <span>CEP</span>
+            <strong id="cep"></strong>
+            <input type="text" id="input_cep" class="hidden" placeholder="00000-000">
+          </div>
+
+          <div class="info-box">
+            <span>Rua</span>
+            <strong id="rua"></strong>
+            <input type="text" id="input_rua" class="hidden" placeholder="Nome da rua">
+          </div>
+
+          <div class="info-box">
+            <span>Número</span>
+            <strong id="numero"></strong>
+            <input type="text" id="input_numero" class="hidden" placeholder="Número">
+          </div>
+
+          <div class="info-box">
+            <span>Complemento</span>
+            <strong id="complemento"></strong>
+            <input type="text" id="input_complemento" class="hidden" placeholder="Apto, sala, etc.">
+          </div>
+
+          <div class="info-box">
+            <span>Bairro</span>
+            <strong id="bairro"></strong>
+            <input type="text" id="input_bairro" class="hidden" placeholder="Bairro">
+          </div>
+
+          <div class="info-box">
+            <span>Cidade</span>
+            <strong id="cidade"></strong>
+            <input type="text" id="input_cidade" class="hidden" placeholder="Cidade">
+          </div>
+
+          <div class="info-box">
+            <span>Estado</span>
+            <strong id="estado"></strong>
+            <input type="text" id="input_estado" class="hidden" placeholder="Estado">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- AÇÕES -->
+      <div class="perfil-actions">
+        <button id="editar" class="btn-primary">Editar</button>
+        <button id="cancelar" class="btn-secondary hidden">Cancelar</button>
+        <button id="salvar" class="btn-success hidden">Salvar</button>
+        <button id="logout" class="btn-danger">Sair</button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script src="perfil.js"></script>
+  <script src="/components/header.js"></script>
+</body>
+</html>

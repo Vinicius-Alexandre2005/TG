@@ -1,6 +1,8 @@
 const db = require('../config/db')
 const bcrypt = require('bcrypt')
 const { converterDataParaBanco } = require('../utils/formatadores')
+const { withTransaction } = require('../utils/db_utils')
+const { buildUserUpdate, buildAddressUpdate } = require('../utils/update_utils')
 
 function limparCpf(cpf) {
   return String(cpf || '').replace(/\D/g, '')
@@ -32,7 +34,7 @@ async function vincularServicosPorNome(connection, profissionalId, servicosReceb
 
     await connection.query(
       `INSERT INTO profissional_servicos (profissional_id, servico_id)
-       VALUES (?, ?)` ,
+       VALUES (?, ?)`,
       [profissionalId, servicoId]
     )
   }
@@ -58,87 +60,80 @@ const cadastrarUsuario = async (req, res) => {
     complemento
   } = req.body
 
-  let connection
-
   try {
-    connection = await db.getConnection()
-    await connection.beginTransaction()
-
-    if (!tipo_usuario || !['cliente', 'profissional'].includes(tipo_usuario)) {
-      await connection.rollback()
-      return res.status(400).json({ erro: 'Tipo de usuário inválido' })
-    }
-
-    if (!email || !String(email).trim()) {
-      await connection.rollback()
-      return res.status(400).json({ erro: 'E-mail é obrigatório' })
-    }
-
-    if (!senha || !String(senha).trim()) {
-      await connection.rollback()
-      return res.status(400).json({ erro: 'Senha é obrigatória' })
-    }
-
-    if (tipo_usuario === 'profissional') {
-      if (!limparCpf(cpf)) {
-        await connection.rollback()
-        return res.status(400).json({ erro: 'CPF é obrigatório para profissional' })
+    await withTransaction(async (connection) => {
+      if (!tipo_usuario || !['cliente', 'profissional'].includes(tipo_usuario)) {
+        throw { status: 400, message: 'Tipo de usuário inválido' }
       }
 
-      if (!Array.isArray(servicos) || servicos.length === 0) {
-        await connection.rollback()
-        return res.status(400).json({ erro: 'Informe ao menos um serviço' })
+      if (!email || !String(email).trim()) {
+        throw { status: 400, message: 'E-mail é obrigatório' }
       }
-    }
 
-    const dataFormatada = converterDataParaBanco(data_nascimento) || null
-    const senhaHash = await bcrypt.hash(String(senha), 10)
-    const cpfLimpo = limparCpf(cpf)
+      if (!senha || !String(senha).trim()) {
+        throw { status: 400, message: 'Senha é obrigatória' }
+      }
 
-    const [enderecoResult] = await connection.query(
-      `INSERT INTO enderecos (cep, rua, bairro, cidade, estado, numero, complemento)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [cep, rua, bairro, cidade, estado, numero, complemento || null]
-    )
+      if (tipo_usuario === 'profissional') {
+        if (!limparCpf(cpf)) {
+          throw { status: 400, message: 'CPF é obrigatório para profissional' }
+        }
 
-    const enderecoId = enderecoResult.insertId
+        if (!Array.isArray(servicos) || servicos.length === 0) {
+          throw { status: 400, message: 'Informe ao menos um serviço' }
+        }
+      }
 
-    const [usuarioResult] = await connection.query(
-      `INSERT INTO usuarios (
-        nome_completo,
-        email,
-        telefone,
-        senha,
-        data_nascimento,
-        tipo_usuario,
-        endereco_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [nome_completo, email, telefone, senhaHash, dataFormatada, tipo_usuario, enderecoId]
-    )
+      const dataFormatada = converterDataParaBanco(data_nascimento) || null
+      const senhaHash = await bcrypt.hash(String(senha), 10)
+      const cpfLimpo = limparCpf(cpf)
 
-    const usuarioId = usuarioResult.insertId
-
-    if (tipo_usuario === 'cliente') {
-      await connection.query(
-        'INSERT INTO clientes (usuario_id) VALUES (?)',
-        [usuarioId]
-      )
-    }
-
-    if (tipo_usuario === 'profissional') {
-      const [profissionalResult] = await connection.query(
-        'INSERT INTO profissionais (usuario_id, cpf, sobre) VALUES (?, ?, ?)',
-        [usuarioId, cpfLimpo, sobre || null]
+      const [enderecoResult] = await connection.query(
+        `INSERT INTO enderecos (cep, rua, bairro, cidade, estado, numero, complemento)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [cep, rua, bairro, cidade, estado, numero, complemento || null]
       )
 
-      await vincularServicosPorNome(connection, profissionalResult.insertId, servicos)
-    }
+      const enderecoId = enderecoResult.insertId
 
-    await connection.commit()
-    return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso' })
+      const [usuarioResult] = await connection.query(
+        `INSERT INTO usuarios (
+          nome_completo,
+          email,
+          telefone,
+          senha,
+          data_nascimento,
+          tipo_usuario,
+          endereco_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [nome_completo, email, telefone, senhaHash, dataFormatada, tipo_usuario, enderecoId]
+      )
+
+      const usuarioId = usuarioResult.insertId
+
+      if (tipo_usuario === 'cliente') {
+        await connection.query(
+          'INSERT INTO clientes (usuario_id) VALUES (?)',
+          [usuarioId]
+        )
+      }
+
+      if (tipo_usuario === 'profissional') {
+        const [profissionalResult] = await connection.query(
+          'INSERT INTO profissionais (usuario_id, cpf, sobre) VALUES (?, ?, ?)',
+          [usuarioId, cpfLimpo, sobre || null]
+        )
+
+        await vincularServicosPorNome(connection, profissionalResult.insertId, servicos)
+      }
+      res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso' })
+    })
   } catch (error) {
-    if (connection) await connection.rollback()
     console.error('Erro ao cadastrar usuário:', error)
+
+    if (error.status) {
+      return res.status(error.status).json({ erro: error.message })
+    }
 
     if (error.code === 'ER_DUP_ENTRY') {
       if (String(error.sqlMessage || '').includes('uk_usuarios_email')) {
@@ -153,8 +148,6 @@ const cadastrarUsuario = async (req, res) => {
     }
 
     return res.status(500).json({ erro: 'Erro interno do servidor' })
-  } finally {
-    if (connection) connection.release()
   }
 }
 
@@ -228,192 +221,127 @@ const buscarUsuarioPorId = async (req, res) => {
 
 const atualizarUsuario = async (req, res) => {
   const { id } = req.params
-  const {
-    nome_completo,
-    email,
-    telefone,
-    senha,
-    data_nascimento,
-    cep,
-    rua,
-    bairro,
-    cidade,
-    estado,
-    numero,
-    complemento
-  } = req.body
-
-  let connection
+  const dados = req.body
 
   try {
-    connection = await db.getConnection()
-    await connection.beginTransaction()
-
-    const [usuarios] = await connection.query(
-      'SELECT * FROM usuarios WHERE id = ?',
-      [id]
-    )
-
-    if (usuarios.length === 0) {
-      await connection.rollback()
-      return res.status(404).json({ erro: 'Usuário não encontrado' })
-    }
-
-    const usuario = usuarios[0]
-    const camposUsuario = []
-    const valoresUsuario = []
-
-    if (nome_completo !== undefined) {
-      camposUsuario.push('nome_completo = ?')
-      valoresUsuario.push(nome_completo)
-    }
-
-    if (email !== undefined) {
-      camposUsuario.push('email = ?')
-      valoresUsuario.push(email)
-    }
-
-    if (telefone !== undefined) {
-      camposUsuario.push('telefone = ?')
-      valoresUsuario.push(telefone)
-    }
-
-    if (senha !== undefined && String(senha).trim() !== '') {
-      const senhaHash = await bcrypt.hash(String(senha), 10)
-      camposUsuario.push('senha = ?')
-      valoresUsuario.push(senhaHash)
-    }
-
-    if (data_nascimento !== undefined) {
-      camposUsuario.push('data_nascimento = ?')
-      valoresUsuario.push(converterDataParaBanco(data_nascimento) || data_nascimento || null)
-    }
-
-    if (camposUsuario.length > 0) {
-      valoresUsuario.push(id)
-      await connection.query(
-        `UPDATE usuarios SET ${camposUsuario.join(', ')} WHERE id = ?`,
-        valoresUsuario
+    await withTransaction(async (connection) => {
+      const [usuarios] = await connection.query(
+        'SELECT * FROM usuarios WHERE id = ?',
+        [id]
       )
-    }
 
-    if (usuario.endereco_id) {
-      const camposEndereco = []
-      const valoresEndereco = []
-
-      for (const [campo, valor] of Object.entries({ cep, rua, bairro, cidade, estado, numero })) {
-        if (valor !== undefined) {
-          camposEndereco.push(`${campo} = ?`)
-          valoresEndereco.push(valor)
-        }
+      if (usuarios.length === 0) {
+        throw { status: 404, message: 'Usuário não encontrado' }
       }
 
-      if (complemento !== undefined) {
-        camposEndereco.push('complemento = ?')
-        valoresEndereco.push(complemento || null)
-      }
+      const usuario = usuarios[0]
 
-      if (camposEndereco.length > 0) {
-        valoresEndereco.push(usuario.endereco_id)
+      const { fields: userFields, values: userValues } = await buildUserUpdate(dados)
+
+      if (userFields.length > 0) {
+        userValues.push(id)
         await connection.query(
-          `UPDATE enderecos SET ${camposEndereco.join(', ')} WHERE id = ?`,
-          valoresEndereco
+          `UPDATE usuarios SET ${userFields.join(', ')} WHERE id = ?`,
+          userValues
         )
       }
-    }
 
-    await connection.commit()
-    return res.status(200).json({ mensagem: 'Usuário atualizado com sucesso' })
+      if (usuario.endereco_id) {
+        const { fields: addressFields, values: addressValues } = buildAddressUpdate(dados)
+
+        if (addressFields.length > 0) {
+          addressValues.push(usuario.endereco_id)
+          await connection.query(
+            `UPDATE enderecos SET ${addressFields.join(', ')} WHERE id = ?`,
+            addressValues
+          )
+        }
+      }
+      res.status(200).json({ mensagem: 'Usuário atualizado com sucesso' })
+    })
   } catch (error) {
-    if (connection) await connection.rollback()
     console.error('Erro ao atualizar usuário:', error)
+
+    if (error.status) {
+      return res.status(error.status).json({ erro: error.message })
+    }
 
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ erro: 'Este e-mail já está cadastrado' })
     }
 
     return res.status(500).json({ erro: 'Erro interno do servidor' })
-  } finally {
-    if (connection) connection.release()
   }
 }
 
 const deletarUsuario = async (req, res) => {
   const { id } = req.params
-  let connection
 
   try {
-    connection = await db.getConnection()
-    await connection.beginTransaction()
-
-    const [usuarios] = await connection.query(
-      'SELECT * FROM usuarios WHERE id = ?',
-      [id]
-    )
-
-    if (usuarios.length === 0) {
-      await connection.rollback()
-      return res.status(404).json({ erro: 'Usuário não encontrado' })
-    }
-
-    const usuario = usuarios[0]
-    const enderecoId = usuario.endereco_id
-
-    if (usuario.tipo_usuario === 'profissional') {
-      const [profissionais] = await connection.query(
-        'SELECT id FROM profissionais WHERE usuario_id = ?',
+    await withTransaction(async (connection) => {
+      const [usuarios] = await connection.query(
+        'SELECT * FROM usuarios WHERE id = ?',
         [id]
       )
 
-      if (profissionais.length > 0) {
-        const profissionalId = profissionais[0].id
+      if (usuarios.length === 0) {
+        throw { status: 404, message: 'Usuário não encontrado' }
+      }
 
-        await connection.query(
-          'DELETE FROM profissional_servicos WHERE profissional_id = ?',
-          [profissionalId]
+      const usuario = usuarios[0]
+      const enderecoId = usuario.endereco_id
+
+      if (usuario.tipo_usuario === 'profissional') {
+        const [profissionais] = await connection.query(
+          'SELECT id FROM profissionais WHERE usuario_id = ?',
+          [id]
         )
 
+        if (profissionais.length > 0) {
+          const profissionalId = profissionais[0].id
+
+          await connection.query(
+            'DELETE FROM profissional_servicos WHERE profissional_id = ?',
+            [profissionalId]
+          )
+
+          await connection.query(
+            'DELETE FROM profissionais WHERE usuario_id = ?',
+            [id]
+          )
+        }
+      }
+
+      if (usuario.tipo_usuario === 'cliente') {
         await connection.query(
-          'DELETE FROM profissionais WHERE usuario_id = ?',
+          'DELETE FROM clientes WHERE usuario_id = ?',
           [id]
         )
       }
-    }
 
-    if (usuario.tipo_usuario === 'cliente') {
       await connection.query(
-        'DELETE FROM clientes WHERE usuario_id = ?',
+        'DELETE FROM usuarios WHERE id = ?',
         [id]
       )
-    }
 
-    await connection.query(
-      'DELETE FROM usuarios WHERE id = ?',
-      [id]
-    )
-
-    if (enderecoId) {
-      const [enderecoUso] = await connection.query(
-        'SELECT COUNT(*) AS total FROM usuarios WHERE endereco_id = ?',
-        [enderecoId]
-      )
-
-      if (enderecoUso[0].total === 0) {
-        await connection.query(
-          'DELETE FROM enderecos WHERE id = ?',
+      if (enderecoId) {
+        const [enderecoUso] = await connection.query(
+          'SELECT COUNT(*) AS total FROM usuarios WHERE endereco_id = ?',
           [enderecoId]
         )
-      }
-    }
 
-    await connection.commit()
-    return res.status(200).json({ mensagem: 'Usuário deletado com sucesso' })
+        if (enderecoUso[0].total === 0) {
+          await connection.query(
+            'DELETE FROM enderecos WHERE id = ?',
+            [enderecoId]
+          )
+        }
+      }
+      res.status(200).json({ mensagem: 'Usuário deletado com sucesso' })
+    })
   } catch (error) {
-    if (connection) await connection.rollback()
     console.error('Erro ao deletar usuário:', error)
     return res.status(500).json({ erro: 'Erro interno do servidor' })
-  } finally {
-    if (connection) connection.release()
   }
 }
 

@@ -1,14 +1,17 @@
-var createError = require('http-errors')
-var express = require('express')
-var path = require('path')
-var cookieParser = require('cookie-parser')
-var logger = require('morgan')
+require('dotenv').config()
 
-var usersRouter = require('./routes/users')
-var clientesRouter = require('./routes/clientes')
-var profissionaisRouter = require('./routes/profissionais')
+const createError = require('http-errors')
+const express = require('express')
+const path = require('path')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
 
-var app = express()
+const usersRouter = require('./routes/users')
+const clientesRouter = require('./routes/clientes')
+const profissionaisRouter = require('./routes/profissionais')
+const authRouter = require('./routes/auth')
+
+const app = express()
 
 app.use(logger('dev'))
 app.use(express.json())
@@ -18,18 +21,29 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.static(path.join(__dirname, '../front-end')))
 
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../front-end/login/login.html'))
+})
+
+app.get('/', (req, res) => {
+  res.redirect('/login')
+})
+
 app.use('/usuarios', usersRouter)
 app.use('/clientes', clientesRouter)
 app.use('/profissionais', profissionaisRouter)
+app.use('/auth', authRouter)
 
-app.use(function(req, res, next) {
-  next(createError(404))
+app.use((req, res, next) => {
+  next(createError(404, 'Rota não encontrada'))
 })
 
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
+  console.error(err)
+
   res.status(err.status || 500).json({
     sucesso: false,
-    erro: err.message
+    erro: err.message || 'Erro interno do servidor'
   })
 })
 

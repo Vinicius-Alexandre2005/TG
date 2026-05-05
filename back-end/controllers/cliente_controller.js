@@ -1,231 +1,107 @@
 const db = require('../config/db')
 const bcrypt = require('bcrypt')
-const { converterDataParaBanco } = require('../utils/formatadores')
-
-function getCamposUsuario(dados) {
-  const campos = []
-  const valores = []
-
-  for (const campo of ['nome_completo', 'email', 'telefone']) {
-    if (campo in dados) {
-      campos.push(`${campo} = ?`)
-      valores.push(dados[campo])
-    }
-  }
-
-  return { campos, valores }
-}
-
-function getCamposEndereco(dados) {
-  const campos = []
-  const valores = []
-
-  for (const campo of ['cep', 'rua', 'bairro', 'cidade', 'estado', 'numero']) {
-    if (campo in dados) {
-      campos.push(`${campo} = ?`)
-      valores.push(dados[campo])
-    }
-  }
-
-  if ('complemento' in dados) {
-    campos.push('complemento = ?')
-    valores.push(dados.complemento || null)
-  }
-
-  return { campos, valores }
-}
+const { withTransaction } = require('../utils/db_utils')
+const { buildUserUpdate, buildAddressUpdate } = require('../utils/update_utils')
 
 async function buscarCliente(connection, id) {
-  const [clientes] = await connection.query(
-    `SELECT 
-      c.id,
-      c.usuario_id,
-      u.endereco_id
+  const [rows] = await connection.query(
+    `SELECT c.id, c.usuario_id, u.endereco_id
      FROM clientes c
      JOIN usuarios u ON u.id = c.usuario_id
      WHERE c.id = ?`,
     [id]
   )
-
-  return clientes[0] || null
+  return rows[0] || null
 }
 
 exports.getAll = async (req, res) => {
   try {
-    const [clientes] = await db.query(
-      `SELECT 
-        c.id,
-        u.id AS usuario_id,
-        u.nome_completo,
-        u.email,
-        u.telefone,
-        DATE_FORMAT(u.data_nascimento, '%d/%m/%Y') AS data_nascimento,
-        e.cep,
-        e.rua,
-        e.bairro,
-        e.cidade,
-        e.estado,
-        e.numero,
-        e.complemento
+    const [rows] = await db.query(`
+      SELECT c.id, u.nome_completo, u.email, u.telefone, 
+             DATE_FORMAT(u.data_nascimento, '%d/%m/%Y') as data_nascimento,
+             e.cidade, e.estado
       FROM clientes c
-      JOIN usuarios u ON u.id = c.usuario_id
-      JOIN enderecos e ON e.id = u.endereco_id
-      ORDER BY c.id DESC`
-    )
-
-    return res.status(200).json({ sucesso: true, clientes })
+      JOIN usuarios u ON c.usuario_id = u.id
+      LEFT JOIN enderecos e ON u.endereco_id = e.id
+    `)
+    res.json(rows)
   } catch (error) {
     console.error(error)
-    return res.status(500).json({ sucesso: false })
+    res.status(500).json({ erro: 'Erro ao listar clientes' })
   }
 }
 
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params
-
-    const [clientes] = await db.query(
-      `SELECT 
-        c.id,
-        u.id AS usuario_id,
-        u.nome_completo,
-        u.email,
-        u.telefone,
-        DATE_FORMAT(u.data_nascimento, '%d/%m/%Y') AS data_nascimento,
-        e.cep,
-        e.rua,
-        e.bairro,
-        e.cidade,
-        e.estado,
-        e.numero,
-        e.complemento
+    const [rows] = await db.query(`
+      SELECT c.id, u.nome_completo, u.email, u.telefone, 
+             DATE_FORMAT(u.data_nascimento, '%d/%m/%Y') as data_nascimento,
+             e.cep, e.rua, e.bairro, e.cidade, e.estado, e.numero, e.complemento
       FROM clientes c
-      JOIN usuarios u ON u.id = c.usuario_id
-      JOIN enderecos e ON e.id = u.endereco_id
-      WHERE c.id = ?`,
-      [id]
-    )
-
-    if (clientes.length === 0) {
-      return res.status(404).json({ sucesso: false })
-    }
-
-    return res.status(200).json({ sucesso: true, cliente: clientes[0] })
+      JOIN usuarios u ON c.usuario_id = u.id
+      LEFT JOIN enderecos e ON u.endereco_id = e.id
+      WHERE c.id = ?
+    `, [id])
+    
+    if (rows.length === 0) return res.status(404).json({ erro: 'Cliente não encontrado' })
+    res.json(rows[0])
   } catch (error) {
     console.error(error)
-    return res.status(500).json({ sucesso: false })
+    res.status(500).json({ erro: 'Erro ao buscar cliente' })
   }
 }
 
 exports.put = async (req, res) => {
-  let connection
+  const { id } = req.params
+  const dados = req.body
 
   try {
-    const { id } = req.params
-    const dados = req.body
+    await withTransaction(async (connection) => {
+      const cliente = await buscarCliente(connection, id)
+      if (!cliente) throw { status: 404, message: 'Cliente não encontrado' }
 
-    connection = await db.getConnection()
-    await connection.beginTransaction()
+      const { fields: userFields, values: userValues } = await buildUserUpdate(dados)
+      if (userFields.length > 0) {
+        userValues.push(cliente.usuario_id)
+        await connection.query(`UPDATE usuarios SET ${userFields.join(', ')} WHERE id = ?`, userValues)
+      }
 
-    const cliente = await buscarCliente(connection, id)
-
-    if (!cliente) {
-      await connection.rollback()
-      return res.status(404).end()
-    }
-
-    const { campos: camposUsuario, valores: valoresUsuario } = getCamposUsuario(dados)
-
-    if (dados.senha && dados.senha.trim() !== '') {
-      const senhaHash = await bcrypt.hash(dados.senha, 10)
-      camposUsuario.push('senha = ?')
-      valoresUsuario.push(senhaHash)
-    }
-
-    if (dados.data_nascimento !== undefined) {
-      camposUsuario.push('data_nascimento = ?')
-      valoresUsuario.push(converterDataParaBanco(dados.data_nascimento) || dados.data_nascimento || null)
-    }
-
-    if (camposUsuario.length > 0) {
-      valoresUsuario.push(cliente.usuario_id)
-      await connection.query(
-        `UPDATE usuarios SET ${camposUsuario.join(', ')} WHERE id = ?`,
-        valoresUsuario
-      )
-    }
-
-    const { campos: camposEndereco, valores: valoresEndereco } = getCamposEndereco(dados)
-
-    if (camposEndereco.length > 0) {
-      valoresEndereco.push(cliente.endereco_id)
-      await connection.query(
-        `UPDATE enderecos SET ${camposEndereco.join(', ')} WHERE id = ?`,
-        valoresEndereco
-      )
-    }
-
-    await connection.commit()
-    return res.status(204).end()
+      if (cliente.endereco_id) {
+        const { fields: addrFields, values: addrValues } = buildAddressUpdate(dados)
+        if (addrFields.length > 0) {
+          addrValues.push(cliente.endereco_id)
+          await connection.query(`UPDATE enderecos SET ${addrFields.join(', ')} WHERE id = ?`, addrValues)
+        }
+      }
+      res.status(204).end()
+    })
   } catch (error) {
-    if (connection) {
-      await connection.rollback()
-    }
-
     console.error(error)
-
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).end()
-    }
-
-    return res.status(500).end()
-  } finally {
-    if (connection) {
-      connection.release()
-    }
+    res.status(error.status || 500).json({ erro: error.message || 'Erro ao atualizar cliente' })
   }
 }
 
 exports.delete = async (req, res) => {
-  let connection
-
+  const { id } = req.params
   try {
-    const { id } = req.params
+    await withTransaction(async (connection) => {
+      const cliente = await buscarCliente(connection, id)
+      if (!cliente) throw { status: 404, message: 'Cliente não encontrado' }
 
-    connection = await db.getConnection()
-    await connection.beginTransaction()
-
-    const cliente = await buscarCliente(connection, id)
-
-    if (!cliente) {
-      await connection.rollback()
-      return res.status(404).end()
-    }
-
-    await connection.query(`DELETE FROM clientes WHERE id = ?`, [id])
-    await connection.query(`DELETE FROM usuarios WHERE id = ?`, [cliente.usuario_id])
-
-    const [usoEndereco] = await connection.query(
-      'SELECT COUNT(*) AS total FROM usuarios WHERE endereco_id = ?',
-      [cliente.endereco_id]
-    )
-
-    if (usoEndereco[0].total === 0) {
-      await connection.query(`DELETE FROM enderecos WHERE id = ?`, [cliente.endereco_id])
-    }
-
-    await connection.commit()
-    return res.status(204).end()
+      await connection.query('DELETE FROM clientes WHERE id = ?', [id])
+      await connection.query('DELETE FROM usuarios WHERE id = ?', [cliente.usuario_id])
+      
+      if (cliente.endereco_id) {
+        const [uso] = await connection.query('SELECT COUNT(*) as total FROM usuarios WHERE endereco_id = ?', [cliente.endereco_id])
+        if (uso[0].total === 0) {
+          await connection.query('DELETE FROM enderecos WHERE id = ?', [cliente.endereco_id])
+        }
+      }
+      res.status(204).end()
+    })
   } catch (error) {
-    if (connection) {
-      await connection.rollback()
-    }
-
     console.error(error)
-    return res.status(500).end()
-  } finally {
-    if (connection) {
-      connection.release()
-    }
+    res.status(error.status || 500).json({ erro: error.message || 'Erro ao deletar cliente' })
   }
 }
