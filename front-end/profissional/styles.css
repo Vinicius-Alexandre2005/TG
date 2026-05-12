@@ -1,0 +1,68 @@
+.perfil-profissional {
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 20px;
+}
+
+.perfil-topo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.avatar-profissional {
+  width: 130px;
+  height: 130px;
+
+  border-radius: 50%;
+
+  background: #5b6ee1;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 48px;
+  font-weight: bold;
+
+  margin-bottom: 20px;
+}
+
+.perfil-topo h1 {
+  font-size: 38px;
+  color: #1f2937;
+  text-align: center;
+}
+
+.perfil-card {
+  background: white;
+  border-radius: 20px;
+  padding: 35px;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.info-item {
+  margin-bottom: 30px;
+}
+
+.label {
+  display: block;
+
+  font-size: 14px;
+  font-weight: bold;
+
+  color: #6b7280;
+
+  margin-bottom: 8px;
+
+  text-transform: uppercase;
+}
+
+.info-item p {
+  font-size: 18px;
+  color: #111827;
+  line-height: 1.6;
+}

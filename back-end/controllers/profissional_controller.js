@@ -38,6 +38,88 @@ async function salvarServicos(connection, profissionalId, servicos = []) {
   }
 }
 
+exports.getAll = async (req, res) => {
+  try {
+    const { busca } = req.query
+
+    const termo = `%${busca || ''}%`
+
+    const [rows] = await db.query(`
+      SELECT 
+        p.id,
+        u.nome_completo,
+        u.telefone,
+        p.sobre,
+        GROUP_CONCAT(s.nome SEPARATOR ', ') AS servicos
+      FROM profissionais p
+      JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN profissional_servicos ps 
+        ON ps.profissional_id = p.id
+      LEFT JOIN servicos s 
+        ON s.id = ps.servico_id
+      WHERE 
+        u.nome_completo LIKE ?
+        OR p.sobre LIKE ?
+        OR s.nome LIKE ?
+      GROUP BY p.id
+    `, [termo, termo, termo])
+
+    res.json(rows)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({
+      erro: 'Erro ao buscar profissionais'
+    })
+  }
+}
+
+exports.getById = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const [rows] = await db.query(
+      `
+      SELECT
+        p.id,
+        u.nome_completo,
+        u.email,
+        u.telefone,
+        p.sobre,
+        GROUP_CONCAT(s.nome SEPARATOR ', ') AS servicos
+      FROM profissionais p
+      JOIN usuarios u 
+        ON u.id = p.usuario_id
+
+      LEFT JOIN profissional_servicos ps
+        ON ps.profissional_id = p.id
+
+      LEFT JOIN servicos s
+        ON s.id = ps.servico_id
+
+      WHERE p.id = ?
+
+      GROUP BY p.id
+      `,
+      [id]
+    )
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        erro: 'Profissional não encontrado'
+      })
+    }
+
+    res.json(rows[0])
+
+  } catch (error) {
+    console.error(error)
+
+    res.status(500).json({
+      erro: 'Erro ao buscar profissional'
+    })
+  }
+}
+
 exports.put = async (req, res) => {
   const { id } = req.params;
   const dados = req.body;

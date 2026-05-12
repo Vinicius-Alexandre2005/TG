@@ -73,10 +73,21 @@ body {
 
 /* AVATAR */
 .user-avatar {
-  width: 35px;
-  height: 35px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
+  background: #5b6df6;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  font-size: 16px;
+
   cursor: pointer;
+  user-select: none;
 }
 
 /* DROPDOWN */
