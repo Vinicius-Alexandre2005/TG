@@ -66,3 +66,30 @@
   color: #111827;
   line-height: 1.6;
 }
+
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.btn-requisitar {
+  background: #5b6ee1;
+  color: white;
+  border: none;
+  padding: 12px 40px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-requisitar:hover {
+  background: #4c5cc4;
+}
+
+.btn-requisitar:active {
+  transform: scale(0.98);
+}

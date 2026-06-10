@@ -2,34 +2,83 @@
 
   <div class="logo">
     <a href="/inicio/index.html">
-      <img src="/imagens/logo.png" alt="Logo">
+      <img src="../imagens/icon4.png" alt="Conecta Serviços">
     </a>
   </div>
 
   <div class="search-box">
-    <input 
-      type="text" 
+    <input
+      type="text"
       id="searchInput"
-      placeholder="Buscar serviços..."
+      placeholder="Buscar profissionais ou serviços..."
     >
   </div>
 
   <div class="user-area">
 
-    <div class="auth-buttons" id="auth-buttons">
-      <a href="/login/login.html">Login</a>
-      <a href="/cadastro/index.html">Cadastro</a>
+    <div class="notifications" id="notifications-area" style="display:none">
+
+      <span id="notification-bell">
+        🔔
+      </span>
+
+      <span
+        id="notification-count"
+        style="display:none"
+      ></span>
+
+      <div
+        class="notifications-dropdown"
+        id="notifications-dropdown"
+        style="display:none"
+      >
+        <h3>Notificações</h3>
+
+        <ul id="notifications-list"></ul>
+
+        <button id="mark-all-as-read">
+          Marcar todas como lidas
+        </button>
+      </div>
+
     </div>
 
-    <div class="user-menu" id="user-menu" style="display: none;">
+    <div class="auth-buttons" id="auth-buttons">
+      <a href="/login/login.html">
+        Login
+      </a>
+
+      <a href="/cadastro/index.html">
+        Cadastro
+      </a>
+    </div>
+
+    <div
+      class="user-menu"
+      id="user-menu"
+      style="display:none"
+    >
+
       <div class="user-avatar" id="avatar">
         VA
       </div>
 
       <div class="dropdown" id="dropdown">
-        <a href="/perfil/perfil.html">Painel do usuário</a>
-        <a href="#" id="logout">Sair</a>
+
+        <a href="/perfil/perfil.html">
+          👤 Meu Perfil
+        </a>
+
+        <a href="/solicitacoes/index.html">
+          📋 Minhas Solicitações
+        </a>
+
+        <a href="#" id="logout">
+          🚪 Sair
+        </a>
+
       </div>
+
     </div>
 
   </div>

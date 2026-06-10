@@ -50,13 +50,12 @@ exports.getAll = async (req, res) => {
         u.nome_completo,
         u.telefone,
         p.sobre,
-        GROUP_CONCAT(s.nome SEPARATOR ', ') AS servicos
+        GROUP_CONCAT(s.nome SEPARATOR ", ") AS servicos,
+        (SELECT COALESCE(AVG(nota), 0) FROM avaliacoes WHERE profissional_id = p.id) AS media_avaliacoes
       FROM profissionais p
       JOIN usuarios u ON u.id = p.usuario_id
-      LEFT JOIN profissional_servicos ps 
-        ON ps.profissional_id = p.id
-      LEFT JOIN servicos s 
-        ON s.id = ps.servico_id
+      LEFT JOIN profissional_servicos ps ON ps.profissional_id = p.id
+      LEFT JOIN servicos s ON s.id = ps.servico_id
       WHERE 
         u.nome_completo LIKE ?
         OR p.sobre LIKE ?
@@ -85,16 +84,12 @@ exports.getById = async (req, res) => {
         u.email,
         u.telefone,
         p.sobre,
-        GROUP_CONCAT(s.nome SEPARATOR ', ') AS servicos
+        GROUP_CONCAT(s.nome SEPARATOR ", ") AS servicos,
+        (SELECT COALESCE(AVG(nota), 0) FROM avaliacoes WHERE profissional_id = p.id) AS media_avaliacoes
       FROM profissionais p
-      JOIN usuarios u 
-        ON u.id = p.usuario_id
-
-      LEFT JOIN profissional_servicos ps
-        ON ps.profissional_id = p.id
-
-      LEFT JOIN servicos s
-        ON s.id = ps.servico_id
+      JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN profissional_servicos ps ON ps.profissional_id = p.id
+      LEFT JOIN servicos s ON s.id = ps.servico_id
 
       WHERE p.id = ?
 

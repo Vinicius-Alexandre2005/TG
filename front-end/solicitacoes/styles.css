@@ -1,0 +1,287 @@
+.solicitacoes-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.solicitacoes-container h1 {
+  font-size: 32px;
+  color: #1f2937;
+  margin-bottom: 30px;
+}
+
+.filtros {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.filtro-btn {
+  padding: 10px 20px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.filtro-btn:hover {
+  border-color: #5b6ee1;
+  color: #5b6ee1;
+}
+
+.filtro-btn.ativo {
+  background: #5b6ee1;
+  color: white;
+  border-color: #5b6ee1;
+}
+
+.solicitacoes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.solicitacao-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.solicitacao-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.solicitacao-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.solicitacao-header h3 {
+  font-size: 20px;
+  color: #1f2937;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pendente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-em_andamento {
+  background: #dbeafe;
+  color: #0c4a6e;
+}
+
+.status-finalizado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-recusado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.solicitacao-info {
+  margin-bottom: 15px;
+}
+
+.solicitacao-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.solicitacao-info strong {
+  color: #1f2937;
+}
+
+.solicitacao-contato {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.solicitacao-contato p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.solicitacao-acoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-aceitar {
+  background: #10b981;
+  color: white;
+}
+
+.btn-aceitar:hover {
+  background: #059669;
+}
+
+.btn-recusar {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-recusar:hover {
+  background: #dc2626;
+}
+
+.btn-finalizar {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-finalizar:hover {
+  background: #2563eb;
+}
+
+.btn-avaliar {
+  background: #8b5cf6;
+  color: white;
+}
+
+.btn-avaliar:hover {
+  background: #7c3aed;
+}
+
+.btn-cancelar {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-cancelar:hover {
+  background: #4b5563;
+}
+
+.loading,
+.erro,
+.vazio {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.erro {
+  color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .solicitacoes-container {
+    padding: 15px;
+  }
+
+  .solicitacao-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .filtros {
+    flex-direction: column;
+  }
+
+  .filtro-btn {
+    width: 100%;
+  }
+
+  .solicitacao-acoes {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+/* Modal de Avaliação */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.estrelas-rating {
+  font-size: 40px;
+  margin: 20px 0;
+  cursor: pointer;
+}
+
+.estrela {
+  color: #ccc;
+  transition: color 0.2s;
+}
+
+.estrela.ativo {
+  color: #ffcc00;
+}
+
+#comentario-avaliacao {
+  width: 100%;
+  height: 100px;
+  margin: 15px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  resize: none;
+  font-family: inherit;
+}
+
+.modal-acoes {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}

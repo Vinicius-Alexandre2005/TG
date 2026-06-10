@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minhas Solicitações</title>
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <div id="header-container"></div>
+
+  <main class="solicitacoes-container">
+    <h1>Minhas Solicitações</h1>
+
+    <div class="filtros">
+      <button class="filtro-btn ativo" data-status="todos">Todos</button>
+      <button class="filtro-btn" data-status="PENDENTE">Pendentes</button>
+      <button class="filtro-btn" data-status="EM_ANDAMENTO">Em Andamento</button>
+      <button class="filtro-btn" data-status="FINALIZADO">Finalizados</button>
+      <button class="filtro-btn" data-status="RECUSADO">Recusados</button>
+    </div>
+
+    <div class="solicitacoes-list" id="solicitacoes-list">
+      <p class="loading">Carregando solicitações...</p>
+    </div>
+
+    <!-- Modal de Avaliação -->
+    <div id="modal-avaliacao" class="modal">
+      <div class="modal-content">
+        <h2>Avaliar Serviço</h2>
+        <p>Como foi sua experiência com este profissional?</p>
+        
+        <div class="estrelas-rating" id="estrelas-rating">
+          <span class="estrela" data-valor="1">☆</span>
+          <span class="estrela" data-valor="2">☆</span>
+          <span class="estrela" data-valor="3">☆</span>
+          <span class="estrela" data-valor="4">☆</span>
+          <span class="estrela" data-valor="5">☆</span>
+        </div>
+        
+        <textarea id="comentario-avaliacao" placeholder="Deixe um comentário (opcional)..."></textarea>
+        
+        <div class="modal-acoes">
+          <button id="cancelar-avaliacao" class="btn btn-cancelar">Cancelar</button>
+          <button id="enviar-avaliacao" class="btn btn-aceitar">Enviar Avaliação</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/components/header.js"></script>
+  <script src="./index.js"></script>
+</body>
+</html>

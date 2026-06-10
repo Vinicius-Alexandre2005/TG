@@ -11,7 +11,7 @@ form.addEventListener('submit', async (e) => {
   const dados = Object.fromEntries(formData.entries())
 
   try {
-    const resposta = await fetch('http://localhost:3000/auth/login', {
+    const resposta = await fetch('/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

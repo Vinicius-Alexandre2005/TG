@@ -1,46 +1,174 @@
-.home {
+/* LOGO + NOME */
+
+.brand-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0px;
+
+  margin-bottom: 40px;
+}
+
+.brand-logo {
+  width: 400px;
+  height: auto;
+
+  object-fit: contain;
+}
+
+.brand-text {
+  font-size: 42px;
+  font-weight: 800;
+
+  color: #5b6ee1;
+
+  letter-spacing: 2px;
+}
+
+/* HERO */
+
+.hero {
+  min-height: 420px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   text-align: center;
-  margin-top: 40px;
+
+  padding: 40px 20px 80px;
 }
 
-.home h1 {
-  font-size: 32px;
-  margin-bottom: 10px;
-  color: #333;
+.hero-content {
+  max-width: 850px;
 }
 
-.home p {
-  font-size: 18px;
-  color: #666;
+.hero h1 {
+  font-size: 60px;
+  line-height: 1.1;
+
+  color: #1f2937;
+
+  margin-bottom: 24px;
 }
 
-.profissionais-container {
-  width: 90%;
-  max-width: 1200px;
+.hero p {
+  font-size: 20px;
+  line-height: 1.8;
 
-  margin: 40px auto;
+  color: #6b7280;
+}
 
+/* COMO FUNCIONA */
+
+.como-funciona {
+  padding: 20px 8% 80px;
+}
+
+.como-funciona h2 {
+  text-align: center;
+
+  font-size: 36px;
+
+  color: #1f2937;
+
+  margin-bottom: 50px;
+}
+
+.passos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 
-  gap: 20px;
+  grid-template-columns:
+    repeat(auto-fit, minmax(220px, 1fr));
+
+  gap: 24px;
 }
 
-.profissional-card {
+.passo {
   background: white;
 
-  border-radius: 12px;
+  border-radius: 20px;
 
-  padding: 20px;
+  padding: 30px;
 
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  text-align: center;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.08);
+
+  transition: .25s;
 }
 
-.profissional-card h3 {
-  margin-bottom: 10px;
+.passo:hover {
+  transform: translateY(-6px);
 }
 
-.profissional-card p {
-  margin-bottom: 8px;
-  color: #555;
+.passo span {
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 20px;
+
+  border-radius: 50%;
+
+  background: #5b6ee1;
+
+  color: white;
+
+  font-weight: bold;
+
+  font-size: 18px;
+}
+
+.passo h3 {
+  margin-bottom: 12px;
+
+  color: #1f2937;
+}
+
+.passo p {
+  color: #6b7280;
+
+  line-height: 1.6;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 768px) {
+
+  .brand-showcase {
+    flex-direction: column;
+  }
+
+  .brand-logo {
+    width: 70px;
+    height: 70px;
+  }
+
+  .brand-text {
+    font-size: 30px;
+  }
+
+  .hero {
+    min-height: auto;
+    padding-top: 30px;
+  }
+
+  .hero h1 {
+    font-size: 42px;
+  }
+
+  .hero p {
+    font-size: 18px;
+  }
+
+  .como-funciona h2 {
+    font-size: 30px;
+  }
+
 }

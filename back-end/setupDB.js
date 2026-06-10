@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise')
-require('dotenv').config()
+require('dotenv').config();
 
 async function colunaExiste(connection, tableName, columnName) {
   const [rows] = await connection.query(
@@ -170,6 +170,49 @@ async function setup() {
           AND p.usuario_id IS NULL
       `)
     }
+
+    // Criar tabela de solicitações de serviço
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS solicitacoes_servico (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        cliente_id INT NOT NULL,
+        profissional_id INT NOT NULL,
+        status ENUM('PENDENTE', 'EM_ANDAMENTO', 'FINALIZADO', 'RECUSADO', 'CANCELADO') NOT NULL DEFAULT 'PENDENTE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        data_aceite TIMESTAMP NULL,
+        data_finalizacao TIMESTAMP NULL,
+        CONSTRAINT fk_solicitacoes_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE,
+        CONSTRAINT fk_solicitacoes_profissional FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `)
+
+    // Criar tabela de notificações
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS notificacoes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        usuario_id INT NOT NULL,
+        mensagem TEXT NOT NULL,
+        lida BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_notificacoes_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `)
+
+    // Criar tabela de avaliações
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS avaliacoes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        solicitacao_id INT NOT NULL UNIQUE,
+        cliente_id INT NOT NULL,
+        profissional_id INT NOT NULL,
+        nota DECIMAL(2,1) NOT NULL,
+        comentario TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_avaliacoes_solicitacao FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes_servico(id) ON DELETE CASCADE,
+        CONSTRAINT fk_avaliacoes_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE,
+        CONSTRAINT fk_avaliacoes_profissional FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB;
+    `)
 
     console.log('Banco atualizado com sucesso.')
     await connection.end()

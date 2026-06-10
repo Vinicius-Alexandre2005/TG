@@ -37,7 +37,7 @@ const CAMPOS_EXIBICAO = {
 
 async function carregarPerfil() {
   try {
-    const resposta = await fetch('http://localhost:3000/auth/perfil', {
+    const resposta = await fetch('/auth/perfil', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -213,7 +213,7 @@ async function salvar() {
   }
 
   try {
-    const resposta = await fetch('http://localhost:3000/auth/perfil', {
+    const resposta = await fetch('/auth/perfil', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

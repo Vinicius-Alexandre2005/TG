@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Avaliações do Profissional</title>
+
+  <link rel="stylesheet" href="/global.css">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <div id="header-container"></div>
+
+  <main class="avaliacoes-container">
+
+    <div class="profissional-info">
+      <div class="avatar" id="avatar">VA</div>
+      <div class="info">
+        <h1 id="nomeProfissional">Profissional</h1>
+        <div class="media-container">
+          <span class="media-label">Média de Avaliações:</span>
+          <span class="media-valor" id="mediaAvaliacoes">-</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="avaliacoes-section">
+      <h2>Avaliações Recebidas</h2>
+      <div class="avaliacoes-list" id="avaliacoes-list">
+        <p class="loading">Carregando avaliações...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/components/header.js"></script>
+  <script src="./index.js"></script>
+
+</body>
+</html>

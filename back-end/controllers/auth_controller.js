@@ -17,7 +17,7 @@ exports.login = async (req, res) => {
     }
 
     const [usuarios] = await db.query(
-      `SELECT id, email, senha FROM usuarios WHERE email = ?`,
+      `SELECT id, email, senha, tipo_usuario FROM usuarios WHERE email = ?`,
       [email]
     );
 
@@ -43,6 +43,7 @@ exports.login = async (req, res) => {
       {
         id: usuario.id,
         email: usuario.email,
+        tipo_usuario: usuario.tipo_usuario,
       },
       process.env.JWT_SECRET,
       {

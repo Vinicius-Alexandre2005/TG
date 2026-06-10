@@ -10,6 +10,9 @@ const usersRouter = require('./routes/users')
 const clientesRouter = require('./routes/clientes')
 const profissionaisRouter = require('./routes/profissionais')
 const authRouter = require('./routes/auth')
+const solicitacoesRouter = require('./routes/solicitacoes')
+const notificacoesRouter = require('./routes/notificacoes')
+const avaliacoesRouter = require('./routes/avaliacoes')
 
 const app = express()
 
@@ -33,6 +36,9 @@ app.use('/usuarios', usersRouter)
 app.use('/clientes', clientesRouter)
 app.use('/profissionais', profissionaisRouter)
 app.use('/auth', authRouter)
+app.use('/solicitacoes', solicitacoesRouter)
+app.use('/notificacoes', notificacoesRouter)
+app.use('/avaliacoes', avaliacoesRouter)
 
 app.use((req, res, next) => {
   next(createError(404, 'Rota não encontrada'))
